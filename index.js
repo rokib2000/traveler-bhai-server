@@ -1,0 +1,39 @@
+const express = require("express");
+const cors = require("cors");
+const { json } = require("express");
+require("dotenv").config();
+const { MongoClient, ServerApiVersion } = require("mongodb");
+
+const app = express();
+const port = process.env.PORT || 5000;
+
+//middleWare
+app.use(cors());
+app.use(json());
+
+const dbUserName = process.env.DB_USER;
+const dbPassword = process.env.DB_PASSWORD;
+
+const uri = `mongodb+srv://${dbUserName}:${dbPassword}@cluster0.d4mp0ot.mongodb.net/?retryWrites=true&w=majority`;
+const client = new MongoClient(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverApi: ServerApiVersion.v1,
+});
+
+async function run() {
+  try {
+    const serviceCollection = client.db("travelerBhai").collection("services");
+  } finally {
+    //
+  }
+}
+run();
+
+app.get("/", (req, res) => {
+  res.send("server running");
+});
+
+app.listen(port, () => {
+  console.log(`server running on port ${port}`);
+});

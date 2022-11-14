@@ -25,6 +25,15 @@ async function run() {
   try {
     const serviceCollection = client.db("travelerBhai").collection("services");
 
+    //   show services client side
+    app.get("/services", async (req, res) => {
+      const query = {};
+      const sort = { date: -1 };
+      const cursor = serviceCollection.find(query).sort(sort);
+      const services = await cursor.toArray();
+      res.send(services);
+    });
+
     //   Add service
     app.post("/services", async (req, res) => {
       const service = req.body;

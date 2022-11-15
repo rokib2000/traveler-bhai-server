@@ -75,6 +75,22 @@ async function run() {
       res.send(result);
     });
 
+    // review update
+    app.patch("/reviews/:id", async (req, res) => {
+      const id = req.params.id;
+      const status = req.body.status;
+      console.log(status);
+      const query = { _id: ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          review: status,
+        },
+      };
+      console.log(updateDoc);
+      const result = await reviewCollection.updateOne(query, updateDoc);
+      res.send(result);
+    });
+
     //review delete
     app.delete("/reviews/:id", async (req, res) => {
       const id = req.params.id;

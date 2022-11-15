@@ -50,6 +50,24 @@ async function run() {
       res.send(result);
     });
 
+    // get review data by  service id
+    app.get("/reviews", async (req, res) => {
+      let query = {};
+      if (req.query.id) {
+        query = {
+          serviceID: req.query.id,
+        };
+      }
+      if (req.query.email) {
+        query = {
+          userEmail: req.query.email,
+        };
+      }
+      const cursor = reviewCollection.find(query);
+      const review = await cursor.toArray();
+      res.send(review);
+    });
+
     //  add review
     app.post("/reviews", async (req, res) => {
       const review = req.body;

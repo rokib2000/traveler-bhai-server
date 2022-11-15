@@ -3,6 +3,7 @@ const cors = require("cors");
 const { json } = require("express");
 require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -21,10 +22,35 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
+// jwt function
+function verifyJWT(req, res, next) {
+  // console.log(req.headers.authorization);
+
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).send({ message: "unauthorized access" });
+  }
+  const token = authHeader.split(" ")[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+    if (err) {
+      res.status(401).send({ message: "unauthorized access" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+}
+
 async function run() {
   try {
     const serviceCollection = client.db("travelerBhai").collection("services");
     const reviewCollection = client.db("travelerBhai").collection("reviews");
+
+    app.post("/jwt", async (req, res) => {
+      const user = req.body;
+      // console.log(user);
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "1d" });
+      res.send({ token });
+    });
 
     //   get services client side
     app.get("/services", async (req, res) => {
@@ -58,11 +84,39 @@ async function run() {
           serviceID: req.query.id,
         };
       }
-      if (req.query.email) {
-        query = {
-          userEmail: req.query.email,
-        };
+
+      const cursor = reviewCollection.find(query);
+      const review = await cursor.toArray();
+      res.send(review);
+    });
+
+    // get review data by  service id
+    app.get("/reviewsEmail", verifyJWT, async (req, res) => {
+      // if (req.query.id) {
+      //   query = {
+      //     serviceID: req.query.id,
+      //   };
+      // }
+
+      //jwt
+      const decoded = req.decoded;
+
+      // console.log(decoded);
+      // console.log(req.query.email);
+
+      if (decoded.email !== req.query.email) {
+        return res.status(403).send({ message: "unauthorized access" });
       }
+
+      let query = {
+        userEmail: req.query.email,
+      };
+
+      // if (req.query.email) {
+      //   query = {
+      //     userEmail: req.query.email,
+      //   };
+      // }
       const cursor = reviewCollection.find(query);
       const review = await cursor.toArray();
       res.send(review);
